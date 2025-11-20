@@ -16,8 +16,8 @@ always_ff @(posedge clk_i or negedge res_ni)
 		{cnt, clrtr, sttr} <= 0;
 	else begin
 		cnt   <= (cnt == MXCNT)? reload_i    : cnt + 1;
-        clrtr <= (cnt == MXCNT)? clr_thres_i : clrtr;
-        sttr  <= (cnt == MXCNT)? set_thres_i : sttr;
+        clrtr <= (cnt == MXCNT-1)? clr_thres_i : clrtr;  //MXCNT-1 -> to load new threshold_values before evaluating initial-value
+        sttr  <= (cnt == MXCNT-1)? set_thres_i : sttr;
     end
 
  
@@ -28,7 +28,7 @@ always_ff @(posedge clk_i or negedge res_ni)
         if (sttr == clrtr ) //prioritize clearing if both thresholds are the same
 		  pwm_o <= 1'b0;
 		else begin 
-		   if((cnt == reload_i)&&((sttr < reload_i) || (clrtr < reload_i)))begin 
+		   if((cnt == MXCNT)&&((sttr < reload_i) || (clrtr < reload_i)))begin  // inital value for incorrect configuration
 		      if(sttr < clrtr) 
 		          if(clrtr < reload_i)
 		              pwm_o <= 1'b0;
@@ -45,3 +45,4 @@ always_ff @(posedge clk_i or negedge res_ni)
     end
 
 endmodule
+
