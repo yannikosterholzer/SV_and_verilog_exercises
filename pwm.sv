@@ -8,16 +8,18 @@ module pwm (
   output logic                pwm_o
 );
 
-logic unsigned [7:0]  cnt, clrtr, sttr;
+logic unsigned [7:0]  cnt, clrtr, sttr, clrtr_init, sttr_init ;
 localparam  logic   [7:0]  MXCNT = 8'hFF;
 
 always_ff @(posedge clk_i or negedge res_ni)
 	if (!res_ni)
-		{cnt, clrtr, sttr} <= 0;
+		{cnt, clrtr, sttr, clrtr_init,sttr_init } <= 0;
 	else begin
-		cnt   <= (cnt == MXCNT)? reload_i    : cnt + 1;
-        clrtr <= (cnt == MXCNT-1)? clr_thres_i : clrtr;  //MXCNT-1 -> to load new threshold_values before evaluating initial-value
-        sttr  <= (cnt == MXCNT-1)? set_thres_i : sttr;
+		cnt        <= (cnt == MXCNT)  ? reload_i    : cnt + 1;
+        clrtr_init <= (cnt == MXCNT-1)? clr_thres_i : clrtr_init;
+        sttr_init  <= (cnt == MXCNT-1)? set_thres_i : sttr_init;
+        clrtr      <= (cnt == MXCNT)  ? clrtr_init  : clrtr;
+        sttr       <= (cnt == MXCNT)  ? sttr_init   : sttr;
     end
 
  
@@ -28,9 +30,9 @@ always_ff @(posedge clk_i or negedge res_ni)
         if (sttr == clrtr ) //prioritize clearing if both thresholds are the same
 		  pwm_o <= 1'b0;
 		else begin 
-		   if((cnt == MXCNT)&&((sttr < reload_i) || (clrtr < reload_i)))begin  // inital value for incorrect configuration
-		      if(sttr < clrtr) 
-		          if(clrtr < reload_i)
+		   if((cnt == MXCNT)&&((sttr_init < reload_i) || (clrtr_init < reload_i)))begin  // inital value for incorrect configuration
+		      if(sttr_init < clrtr_init) 
+		          if(clrtr_init < reload_i)
 		              pwm_o <= 1'b0;
 		          else
 		              pwm_o <= 1'b1;
