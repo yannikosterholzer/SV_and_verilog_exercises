@@ -19,7 +19,7 @@ module tb_vending_machine;
     always #5 clk_i = ~clk_i;
 
     // DUT
-    vending_machine2 dut (
+    vending_machine dut (
         .clk_i  (clk_i),
         .ct50_i (ct50_i),
         .aresn_i(aresn_i),
